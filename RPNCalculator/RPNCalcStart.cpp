@@ -117,11 +117,13 @@ namespace P4_RPNCALC
 		double d = 0.0;
 		ostr << "[RPN Programmable Calculator] by @ctongGH, @qwergram, @TabithaRoemish & @AntonioCastelli" << endl;
 		if (m_helpOn)
-			cout << helpMenu;
-		else
-			cout << endl << endl << endl;
-		cout << line;
-		if (!m_stack.empty())
+			ostr << helpMenu;
+		ostr << line;
+		if (!m_commandOutput.empty()) {
+			ostr << m_commandOutput;
+			m_commandOutput = "";
+		} 
+		else if (!m_stack.empty())
 		{
 			this->m_lastOutput = to_string(m_stack.front());
 			ostr << m_stack.front();
@@ -224,6 +226,24 @@ namespace P4_RPNCALC
 					setReg(token.back() - '0');
 				else
 					m_error = true;
+				break;
+			case 'Q':
+				this->showStack();
+				break;
+			case 'W':
+				this->sortStack();
+				break;
+			case '>':
+				this->transformStack(1);
+				break;
+			case '<':
+				this->transformStack(-1);
+				break;
+			case 'T':
+				this->swapStackReg();
+				break;
+			case 'Y':
+				this->heapifyStack();
 				break;
 			default:
 				m_error = true;
@@ -570,6 +590,11 @@ namespace P4_RPNCALC
 				case 'R':
 				case 'U':
 				case 'X':
+				case 'W':
+				case '>':
+				case '<':
+				case 'T':
+				case 'Y':
 					m_program.push_back(token);
 					break;
 				case 'C':
@@ -803,5 +828,62 @@ namespace P4_RPNCALC
 			return returnVal;
 		}
 		return "";
+	}
+	void CRPNCalc::sortStack()
+	{
+		if (m_stack.begin() != m_stack.end()) {
+			std::sort(m_stack.begin(), m_stack.end(), [](const int &a, const int &b) -> bool { return a > b; });
+			showStack();
+		}
+		else
+			m_error = true;
+	}
+
+	void CRPNCalc::showStack()
+	{
+		stringstream stream;
+		stream << '[';
+		for_each(m_stack.begin(), m_stack.end(), [&](const double i) { stream << '(' << i << ")>"; });
+		stream << ']';
+		m_commandOutput = stream.str();
+	}
+	void CRPNCalc::swapStackReg()
+	{
+		if (m_stack.size() <= 10) {
+			auto temp = vector<double>(10);
+			copy(m_stack.begin(), m_stack.end(), temp.begin());
+			copy(begin(m_registers), begin(m_registers) + m_stack.size(), m_stack.begin());
+			//copy(temp.begin(), temp.begin() + m_stack.size(), begin(m_registers)); // C4996
+			for (int i = 0; i < m_stack.size(); i++)
+				m_registers[i] = temp[i];
+		} else {
+			m_error = true;
+		}
+	}
+	void CRPNCalc::transformStack(short direction)
+	{
+		transform(m_stack.begin(), m_stack.end(), m_stack.begin(), [&](double i) -> double { return i + direction; });
+	}
+	void CRPNCalc::heapifyStack(int i)
+	{
+		// max heap
+		if (m_stack.empty()) {
+			m_error = true;
+		}
+		else if (i > 1 && i < m_stack.size()) {
+			int parent = i / 2;
+			int sibling = (i % 2) ? i - 1 : i + 1;
+			int larger = (m_stack[sibling] > m_stack[i]) ? sibling : i;
+			if (m_stack[parent] < m_stack[larger])
+				swap(m_stack[parent], m_stack[larger]);
+			heapifyStack(i - 1);
+		} else if (i == 0) {
+			// .. pass ..
+		} else if (i == -1) {
+			m_stack.push_front(0);
+			this->heapifyStack(m_stack.size() - 1);
+			m_stack.pop_front();
+			this->showStack();
+		}
 	}
 }

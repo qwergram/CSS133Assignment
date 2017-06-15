@@ -18,6 +18,7 @@
 #include <new>
 #include <sstream>
 #include <stack>
+#include <vector>
 //----------------------------------------------------------------------------
 //
 //    Title:		RPNCalc Class
@@ -93,9 +94,11 @@ using namespace std;
 namespace P4_RPNCALC
 {
 
-	const char helpMenu[] = "C clear stack   | CE clear entry  | D rotate down  | F save program to file\n"
-		"G0-G9 get reg n | H help on/off   | L load program | M +/- | P program on/off\n"
-		"R run program   | S0-S9 set reg n | U rotate up    | X exit\n";
+	const char helpMenu[] = 
+		"C clear stack   | CE clear entry  | D rotate down   | F save program to file\n"
+		"G0-G9 get reg n | H help on/off   | L load program  | M +/-  | P program on/off\n"
+		"R run program   | S0-S9 set reg n | U rotate up     | X exit | Y Heapify Stack\n"
+		"W sort stack    | Q show stack    | >/< +/- 1 stack | T swap stack/reg\n";
 
 	const char line[] = "____________________________________________________________________________\n";
 
@@ -145,6 +148,12 @@ namespace P4_RPNCALC
 		void unary_prep(double& d);
 		string getToken();
 
+		void sortStack();
+		void showStack();
+		void swapStackReg();
+		void transformStack(short direction);
+		void heapifyStack(int i=-1);
+
 		// private properties
 		double m_registers[NUMREGS];
 		string m_buffer;
@@ -155,6 +164,7 @@ namespace P4_RPNCALC
 		bool m_helpOn;
 		bool m_on;
 		bool m_programRunning;
+		string m_commandOutput;
 		string m_lastOutput;
 	};
 
